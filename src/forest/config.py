@@ -43,5 +43,7 @@ parametry_rf = {
         'min_samples_leaf': 70
 }
 
+model_path = 'models/random_forest_model.pkl'
+
 
 
