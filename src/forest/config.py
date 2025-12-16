@@ -1,6 +1,8 @@
 from pathlib import Path
 
-data_dir = Path('../data')
+base_dir = Path(__file__).parents[2]
+
+data_dir = base_dir / 'data'
 
 raw_dir = data_dir / 'raw' 
 raw_path = raw_dir / 'raw_data.csv'
@@ -43,7 +45,7 @@ parametry_rf = {
         'min_samples_leaf': 70
 }
 
-model_path = 'models/random_forest_model.pkl'
+model_path = base_dir / 'models' / 'random_forest_model.pkl'
 
 
 
