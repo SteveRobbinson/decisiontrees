@@ -35,5 +35,6 @@ def main():
         config.model_path
     )
 
-    if __name__ == '__main__':
+
+if __name__ == '__main__':
         main()
