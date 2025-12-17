@@ -48,6 +48,14 @@ parametry_rf = {
         'min_samples_leaf': 70
 }
 
+parametry_rf_test = {
+        'n_estimators': 1,
+        'batch_size': 100,
+        'max_depth': 13,
+        'max_features': 3,
+        'min_samples_split': 2,
+        'min_samples_leaf': 1
+}
 model_path = base_dir / 'models' / 'random_forest_model.pkl'
 
 
