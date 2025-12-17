@@ -3,6 +3,7 @@ from pathlib import Path
 base_dir = Path(__file__).parents[2]
 
 data_dir = base_dir / 'data'
+test_path = data_dir / 'test' / '1k_sample.csv'
 
 raw_dir = data_dir / 'raw' 
 raw_path = raw_dir / 'raw_data.csv'
