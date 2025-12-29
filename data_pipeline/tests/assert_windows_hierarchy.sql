@@ -1,15 +1,15 @@
 with base as (
-  select * from {{ ref('num_transactions_time') }}
-),
+  select * from {{ ref('int_count_trx') }}
+)
 
 select * from base
 where
-{% for dim in var('dimension') %}  
+{% for dim in var('dimension') %}
   (
-    {{ dim }}_num_trx_{{ var('time_suffix')[0] }} > {{ dim }}_num_trx_{{ var('time_suffix')[1] }}
-    {{ dim }}_num_trx_{{ var('time_suffix')[1] }} > {{ dim }}_num_trx_{{ var('time_suffix')[2] }}
-    {{ dim }}_num_trx_{{ var('time_suffix')[2] }} > {{ dim }}_num_trx_{{ var('time_suffix')[3] }}
+    {% for i in range(var('time_suffix')|length - 1) %}
+      {{ dim }}_num_trx_{{ var('time_suffix')[i] }} > {{ dim }}_num_trx_{{ var('time_suffix')[i+1] }}
+      {% if not loop.last %} or {% endif %}
+    {% endfor %}
   )
   {% if not loop.last %} or {% endif %}
 {% endfor %}
-
