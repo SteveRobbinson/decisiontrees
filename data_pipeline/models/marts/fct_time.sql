@@ -4,6 +4,7 @@ with staging_data as (
 
 time_features as (
   select
+    transaction_id,
     day(timestamp) as day_of_month,
     month(timestamp) as month,
     hour(timestamp) as hour_of_day,
