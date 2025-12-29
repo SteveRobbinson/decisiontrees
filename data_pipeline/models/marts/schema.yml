@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: fct_time
+    description: Extracting time values
+    columns:
+      - name: hour_of_day
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: 'between 0 and 23'
+
+      - name: day_of_week
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: 'between 1 and 7'
+
+      - name: day_of_month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: 'between 1 and 31'
+
+      - name: month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: 'between 0 and 12'
+
+      - name: is_weekend
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: 'in (0, 1)'
