@@ -1,5 +1,7 @@
 {% set dimensions_full = ['sender_account', 'receiver_account', 'device_hash', 'ip_address'] %}
 {% set time_windows = ['1 hour', '24 hour', '30 day'] %}
+{% set time_suffix = ['1h', '24h', '30d'] %}
+
 with staging_data as (
   select * from {{ ref('stg_transactions') }}
 ),
@@ -15,7 +17,7 @@ windows_computed as (
           partition by {{ dim }}
           order by timestamp
           range between interval '{{ time_windows[i] }}' preceding and current row
-        ) as {{ dim.split('_')[0] }}_num_trx_{{ var('time_suffix')[i] }}
+        ) as {{ dim.split('_')[0] }}_num_trx_{{ time_suffix[i] }}
       {% endfor %}
     {% endfor %}
     from staging_data
