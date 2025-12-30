@@ -47,3 +47,13 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: '>= 0'
+
+  - name: fct_is_receiver_known
+    columns:
+      - name: is_receiver_known
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: 'in (0, 1)'
+        
