@@ -26,6 +26,7 @@ final_features as (
     left join {{ feat.split('_')[1:]|join('_') }}_table t{{ loop.index }}
       on source.transaction_id = t{{ loop.index }}.transaction_id
   {% endfor %}
+  order by timestamp
 )
 
 select * from final_features    
