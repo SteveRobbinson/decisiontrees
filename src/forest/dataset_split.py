@@ -1,18 +1,16 @@
-from sklearn.model_selection import StratifiedShuffleSplit
+from snowflake.snowpark import Session, DataFrame
 import pandas as pd
-import numpy as np
 
-def create_sets(X: pd.DataFrame,
-                y: pd.Series,
-                test_size: float
-                ) -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray, np.ndarray]:
+def create_sets(connection: Session,
+                table_name: str,
+                size_sets: list[float]) -> tuple[DataFrame, ...]:
+    
+    df = connection.table(table_name)
+    
+    datasets = df.random_split(size_sets, 42)
+    names = ['train', 'val', 'test']
 
-    indices = StratifiedShuffleSplit(n_splits = 1, test_size=test_size)
-    train_indices, test_indices = next(indices.split(X, y))
+    for data, name in zip(datasets, names):
+        data.write.mode('overwrite').save_as_table(name + "_table")
 
-    X_train, X_test = X.iloc[train_indices], X.iloc[test_indices]
-    y_train, y_test = y.iloc[train_indices], y.iloc[test_indices]
-
-    return X_train.to_numpy(), X_test.to_numpy(), y_train.to_numpy(), y_test.to_numpy()
-
-
+    return tuple(datasets)
