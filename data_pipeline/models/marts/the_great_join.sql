@@ -1,5 +1,5 @@
 {% set features = ['fct_age_of_user', 'fct_is_receiver_known', 'fct_location_frequency', 'fct_ratio_features', 'fct_time'] %}
-{% set col_to_drop = ['sender_account', 'receiver_account', 'device_hash', 'ip_address', 'fraud_type', 'merchant_category', 'location', 'device_used', 'payment_channel'] %}
+{% set col_to_drop = ['sender_account', 'receiver_account', 'device_hash', 'ip_address', 'fraud_type', 'merchant_category', 'location', 'device_used', 'payment_channel', 'transaction_type'] %}
 
 with staging_data as (
   select
@@ -29,4 +29,5 @@ final_features as (
   order by timestamp
 )
 
-select * from final_features    
+select * exclude(timestamp, transaction_id)
+from final_features    
