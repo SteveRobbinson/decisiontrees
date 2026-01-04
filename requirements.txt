@@ -3,3 +3,5 @@ pandas
 pytest
 pathlib
 scikit-learn
+lightgbm
+snowflake-snowpark-python
