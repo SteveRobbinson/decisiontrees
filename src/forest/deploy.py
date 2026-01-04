@@ -1,40 +1,56 @@
-import numpy as np
-import pandas as pd
-
-from forest import config
-from forest.data_preprocessing import preprocess, split_features_target
-from forest.downsample_majority import downsample_majority
+from snowflake.snowpark.functions import sproc
+from snowflake.snowpark import Session
+import forest.config as config
+from forest.snowflake_session import create_session
 from forest.dataset_split import create_sets
-from forest.random_forest_numpy import RandomForest
-from forest.load_save_model import save_model
+from forest.train_fraud_detection import train_model
+from forest.snowflake_connect import connect_to_snowflake
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Connect to snowflake
+conn = connect_to_snowflake(os.getenv('SNOWFLAKE_PRIVATE_KEY_PATH'))
 
 
-def main():
-    df = preprocess(
-    config.raw_path,
-    config.get_features,
-    config.dummies,
-    config.drop_list
-    )
+# Create snowflake session
+snowflake_session = create_session({'connection': conn})
 
-    df = downsample_majority(df)
 
-    X, y = split_features_target(df, 'is_fraud')
+# Load and create train and validation sets
+train, val, test = create_sets(snowflake_session,
+                               config.get_config(snowflake_session)['preproccessed_table'],
+                               config.get_config(snowflake_session)['size_sets']
+                               )
 
-    feature_names = list(X.columns)
+
+# Initialize Stored Procedure
+@sproc(
+    name = config.get_config(snowflake_session)['stored_procedure']['name'],
+    packages = config.get_config(snowflake_session)['stored_procedure']['packages'],
+    is_permanent = False,
+    stage_location = config.get_config(snowflake_session)['stage_location'],
+    replace = True,
+    imports=['config.py', 'train_fraud_detection.py']
+)
+
+# Train fraud model
+def run_training(connection: Session) -> str:
     
-    X_train, X_test, y_train, y_test = create_sets(X, y, 0.10)
-    
-    model = RandomForest(**config.parametry_rf)
-    model.fit(X_train, y_train)
+    import pandas as pd
+    import joblib
+    import lightgbm as lgb
+    import config
+    from train_fraud_detection import train_model
 
-    save_model(
-        model,
-        config.parametry_rf,
-        feature_names,
-        config.model_path
-    )
+    train_model(connection,
+                'train',
+                'val',
+                config.get_config(connection)['fraud_label'],
+                config.get_config(connection)['stage_location']
+                )
 
+    return 'Chyba pykło'
 
-if __name__ == '__main__':
-        main()
+print(snowflake_session.call(config.get_config(snowflake_session)['stored_procedure']['name']))
