@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import lightgbm as lgb
 
 # Bezpiecznik dla importu dotenv
 try:
@@ -7,26 +8,24 @@ try:
 except ImportError:
     load_dotenv = None
 
-def get_config(session=None, pwd=None) -> dict:
+results = {}
+
+def get_config(session=None) -> dict:
 
     if session is not None:
-        password = pwd
-        import _snowflake
-            
+
         return {
             'snowflake_info': {
                 "SNOWFLAKE_USER": session.get_current_user(),
-              # "SNOWFLAKE_PASSWORD": _snowflake.get_generic_secret_string('snowflake_access'),
-                "SNOWFLAKE_PASSWORD": password,
                 "SNOWFLAKE_ACCOUNT": session.get_current_account() ,
                 "SNOWFLAKE_WAREHOUSE": session.get_current_warehouse(),
                 "SNOWFLAKE_DATABASE": session.get_current_database(),
                 "SNOWFLAKE_SCHEMA": session.get_current_schema()
             },
-            'lightgbm_config': lightgbm_parameters
+            
+            **config
         }
         
-
     from dotenv import load_dotenv
     load_dotenv()
 
@@ -34,17 +33,22 @@ def get_config(session=None, pwd=None) -> dict:
         'connection_parameters': {
             "account": os.getenv('SNOWFLAKE_ACCOUNT'),
             "user": os.getenv('SNOWFLAKE_USER'),
-            "password": os.getenv('SNOWFLAKE_PASSWORD'),
             "role": os.getenv('SNOWFLAKE_ROLE'),
             "warehouse": os.getenv('SNOWFLAKE_WAREHOUSE'),
             "database": os.getenv('SNOWFLAKE_DATABASE'),
             "schema": os.getenv('SNOWFLAKE_SCHEMA')
         },
 
-        'lightgbm_config': lightgbm_parameters,
+        **config
     }
 
-lightgbm_parameters = {
+        
+config = {
+        'preproccessed_table': 'the_great_join',
+
+        'size_sets': [0.8, 0.1, 0.1],
+
+        'lightgbm_config': {
             'objective': 'binary',
             'metric': 'auc',
             'boosting_type': 'gbdt',
@@ -59,4 +63,26 @@ lightgbm_parameters = {
             'seed': 42,
             'verbosity': -1,
             'boost_from_average': True
+        },
+
+        'stage_location': '@ml_stage',
+
+        'fraud_label': 'IS_FRAUD',
+
+        'num_boost_round': 10,
+
+        'callbacks': [
+            lgb.log_evaluation(20),
+            lgb.early_stopping(50),
+            lgb.record_evaluation(results)
+        ],
+
+        'stored_procedure': {
+                'name': 'train_fraud_detection',
+                'packages': ['lightgbm',
+                             'joblib',
+                             'pandas',
+                             'snowflake-snowpark-python'
+                             ]
+        }
 }
